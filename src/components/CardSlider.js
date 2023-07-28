@@ -30,7 +30,7 @@ export default React.memo(
               </div>
               <div className="flex slider" ref={listRef}>
                   {data.map((movie, index)=> {
-                      return <Card moiveData={movie} index={index} key={movie.id}/>
+                      return <Card movieData={movie} index={index} key={movie.id}/>
                   })}
               </div>
               <div className={`slider-action right ${!showControls ? "none" : ""} flex a-center j-center`}>

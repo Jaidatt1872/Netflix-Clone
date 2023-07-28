@@ -7,24 +7,47 @@ import {RiThumbUpFill, RiThumbDownFill} from "react-icons/ri"
 import {BsCheck} from "react-icons/bs"
 import {AiOutlinePlus} from "react-icons/ai"
 import {BiChevronDown} from "react-icons/bi"
+import { firebaseAuth } from '../utils/firebase-config';
+import { onAuthStateChanged } from 'firebase/auth';
+import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { removeFromLikedMovies } from '../store';
 
 export default React.memo(
-  function Card({ moiveData, isLiked = false }) {
+  function Card({ movieData, isLiked = false }) {
     const [isHovered, setIsHovered] = useState(false);
+    const [email, setEmail] = useState(undefined);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    onAuthStateChanged(firebaseAuth, (currentUser)=> {
+        if(currentUser) {
+            setEmail(currentUser.email);
+        } else {    
+            navigate("/login");
+        }
+    });
+
+    const addToList = async ()=> {
+        try {
+            await axios.post("http://localhost:5000/api/user/add", {email, data: movieData})
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
     return (
         <Container onMouseEnter={()=> setIsHovered(true)} onMouseLeave={()=> setIsHovered(false)}>
-            <img src={`https://image.tmdb.org/t/p/w500${moiveData.image}`} alt="movie"/>
+            <img src={`https://image.tmdb.org/t/p/w500${movieData.image}`} alt="movie"/>
             {
                 isHovered && (
                     <div className="hover">
                         <div className="image-video-container">
-                            <img src={`https://image.tmdb.org/t/p/w500${moiveData.image}`} alt="movie" onClick={()=> navigate("/player")}/>
+                            <img src={`https://image.tmdb.org/t/p/w500${movieData.image}`} alt="movie" onClick={()=> navigate("/player")}/>
                             <video src={video} autoPlay loop muted onClick={()=> navigate("/player")}/>
                         </div>
                         <div className="info-container flex column">
-                            <h3 className="name" onClick={()=> navigate("/player")}>{moiveData.name}</h3>
+                            <h3 className="name" onClick={()=> navigate("/player")}>{movieData.name}</h3>
                             <div className="icons flex j-between">
                                 <div className="controls flex">
                                     <IoPlayCircleSharp title="Play" onClick={()=> navigate("/player")}/>
@@ -32,8 +55,8 @@ export default React.memo(
                                     <RiThumbDownFill title="Dislike"/>
                                     {
                                         isLiked ? 
-                                            <BsCheck title="Remove form List"/> :
-                                            <AiOutlinePlus title="Add to My List"/>
+                                            <BsCheck title="Remove form List" onClick={()=> dispatch(removeFromLikedMovies({ movieId: movieData.id, email }))}/> :
+                                            <AiOutlinePlus title="Add to My List" onClick={addToList}/>
                                     }
                                 </div>
                                 <div className="info">
@@ -41,7 +64,7 @@ export default React.memo(
                                 </div>
                             </div>
                             <div className="genres flex">
-                                <ul className="flex">{moiveData.genres.map((genre)=>(
+                                <ul className="flex">{movieData.genres.map((genre)=>(
                                     <li key={genre}>{genre}</li>
                                 ))}</ul>
                             </div>
