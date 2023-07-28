@@ -28,6 +28,7 @@ export default function UserLiked() {
         if (email) {
             dispatch(getUserLikedMovies(email));
         }
+        // eslint-disable-next-line
     }, [email]);
     
     window.onscroll = ()=> {
